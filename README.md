@@ -15,5 +15,11 @@ The Chat_Enhanced module works by extending the PlayerScript class. Here is a li
 - **Check for Emoticons:** All the words in the chat message are checked to see if they match with the predefined emoticons list. If a match is found, then the emoticon text is replaced with the corresponding image.
 - **Game Master Commands:** Special commands '@here' and '@everyone' are designed for Game Masters. When a Game Master user tags '@here', all players in the same area as the Game Master receive the chat message. When they tag '@everyone', every online player receives the chat message, irrespective of their location.
 
+
+- Tag player : `@playerName`
+- Send emoticons : `:our_emoticons:`
+- Tag everyone : `@everyone`
+- Tag here : `@here`
+
 # Important Points
 The module doesn't have any user-end configurations but it requires you to pre-define the mapping of emoticons to images in the code itself.
