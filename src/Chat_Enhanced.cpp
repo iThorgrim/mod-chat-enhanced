@@ -134,8 +134,45 @@ public:
         return formatted_player_name;
     }
 
-    void OnBeforeSendChatMessage(Player* /*player*/, uint32& /*type*/, uint32& /*lang*/, std::string& msg)
+    void OnBeforeSendChatMessage(Player* player, uint32& /*type*/, uint32& /*lang*/, std::string& msg)
     {
+        if (player->IsGameMaster() && (msg.find("@here") != std::string::npos || msg.find("@everyone") != std::string::npos )) {
+            if ( msg.find("@here" ) != std::string::npos )
+            {
+                uint32 gmAreaId = player->GetAreaId();
+                SessionMap const& sessions = sWorld->GetAllSessions();
+                std::string formatted_player_name = "[|Hplayer:" + player->GetName() + "|h" + player->GetName() + "|h]";
+
+                for (SessionMap::const_iterator i = sessions.begin(); i != sessions.end(); ++i)
+                {
+                    Player* p = i->second->GetPlayer();
+                    if ( p->GetAreaId() == gmAreaId )
+                    {
+                        msg = std::regex_replace(msg, std::regex("@here"), ""); // remove "@here"
+                        ChatHandler(p->GetSession()).PSendSysMessage("%s : %s", formatted_player_name, msg.c_str());
+
+                        p->PlayDirectSound(3201);
+                    }
+                }
+            }
+
+            if ( msg.find("@everyone") != std::string::npos )
+            {
+                SessionMap const& sessions = sWorld->GetAllSessions();
+                std::string formatted_player_name = "[|Hplayer:" + player->GetName() + "|h" + player->GetName() + "|h]";
+                for (SessionMap::const_iterator i = sessions.begin(); i != sessions.end(); ++i)
+                {
+                    Player* p = i->second->GetPlayer();
+                    msg = std::regex_replace(msg, std::regex("@everyone"), ""); // remove "@everyone"
+                    ChatHandler(p->GetSession()).PSendSysMessage("%s : %s", formatted_player_name, msg.c_str());
+
+                    p->PlayDirectSound(3201);
+                }
+            }
+
+
+        }
+
         std::istringstream iss(msg);
         std::vector<std::string> words((std::istream_iterator<std::string>(iss)), std::istream_iterator<std::string>());
 
