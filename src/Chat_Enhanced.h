@@ -3,6 +3,11 @@
 
 #include "ScriptMgr.h"
 
+enum Chat_Enhanced_Constants
+{
+    SOUND_IG_BONUS_BAR_OPEN = 3201
+};
+
 class Chat_Enhanced : public PlayerScript
 {
 public:

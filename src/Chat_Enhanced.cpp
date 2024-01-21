@@ -171,7 +171,7 @@ void Chat_Enhanced::OnBeforeSendChatMessage(Player* player, uint32& /*type*/, ui
                     msg = std::regex_replace(msg, std::regex("@here"), ""); // remove "@here"
                     ChatHandler(p->GetSession()).PSendSysMessage("%s : %s", formatted_player_name, msg.c_str());
 
-                    p->PlayDirectSound(3201);
+                    p->PlayDirectSound(SOUND_IG_BONUS_BAR_OPEN);
                 }
             }
         }
@@ -188,7 +188,7 @@ void Chat_Enhanced::OnBeforeSendChatMessage(Player* player, uint32& /*type*/, ui
                 msg = std::regex_replace(msg, std::regex("@everyone"), ""); // remove "@everyone"
                 ChatHandler(p->GetSession()).PSendSysMessage("%s : %s", formatted_player_name, msg.c_str());
 
-                p->PlayDirectSound(3201);
+                p->PlayDirectSound(SOUND_IG_BONUS_BAR_OPEN);
             }
         }
     }
