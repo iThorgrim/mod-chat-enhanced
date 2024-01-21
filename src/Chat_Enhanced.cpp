@@ -148,6 +148,11 @@ public:
     // Function that is called before a player sends a chat message
     void OnBeforeSendChatMessage(Player* player, uint32& /*type*/, uint32& /*lang*/, std::string& msg)
     {
+        if (!sConfigMgr->GetOption<bool>("ModChatEnchanced.Enable", false))
+        {
+            return;
+        }
+
         // Logic related to broadcasting messages and tagging other players in the chat
 
         // Check if the player is a Game Master and if the message contains "@here" or "@everyone" tags.
