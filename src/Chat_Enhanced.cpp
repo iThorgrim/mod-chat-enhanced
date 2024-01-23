@@ -11,6 +11,8 @@
 #include <algorithm>
 #include <regex>
 
+#include "Chat_Enhanced.h"
+
 // Function to get the chat emoticons mapping
 std::map<std::string, std::string> getChatEmotesMap()
 {
@@ -121,123 +123,112 @@ std::map<std::string, std::string> getChatEmotesMap()
 // Creating the emoticon map
 std::map<std::string, std::string> ChatEmotes = getChatEmotesMap();
 
-// Inheriting from PlayerScript to enhance chat functionality
-class Chat_Enhanced : public PlayerScript
+Player* Chat_Enhanced::FindPlayerByName(const std::string& name)
 {
-public:
-    // Constructor
-    Chat_Enhanced() : PlayerScript("Chat_Enhanced") { }
+    return ObjectAccessor::FindPlayerByName(name, false);
+}
 
-    // Function to find a player by their name
-    Player* FindPlayerByName(const std::string& name)
+std::string Chat_Enhanced::FormatPlayerName(const std::string& playerName)
+{
+    std::string formatted_player_name = playerName;
+    formatted_player_name[0] = std::toupper(formatted_player_name[0]);
+    std::transform(formatted_player_name.begin() + 1, formatted_player_name.end(),
+        formatted_player_name.begin() + 1, ::tolower);
+
+    return formatted_player_name;
+}
+
+void Chat_Enhanced::OnBeforeSendChatMessage(Player* player, uint32& /*type*/, uint32& /*lang*/, std::string& msg)
+{
+    if (!sConfigMgr->GetOption<bool>("ModChatEnchanced.Enable", false))
     {
-        return ObjectAccessor::FindPlayerByName(name, false);
+        return;
     }
 
-    // Function to format the player's name (uppercasing first character and lowercasing the rest)
-    std::string FormatPlayerName(const std::string& player_name)
-    {
-        std::string formatted_player_name = player_name;
-        formatted_player_name[0] = std::toupper(formatted_player_name[0]);
-        std::transform(formatted_player_name.begin() + 1, formatted_player_name.end(),
-            formatted_player_name.begin() + 1, ::tolower);
+    // Logic related to broadcasting messages and tagging other players in the chat
 
-        return formatted_player_name;
-    }
+    // Check if the player is a Game Master and if the message contains "@here" or "@everyone" tags.
+    if (player->IsGameMaster() && (msg.find("@here") != std::string::npos || msg.find("@everyone") != std::string::npos)) {
+        // Getting all active sessions.
+        SessionMap const& sessions = sWorld->GetAllSessions();
+        // Formatting the name of the game master in context.
+        std::string formatted_player_name = "[|Hplayer:" + player->GetName() + "|h" + player->GetName() + "|h]";
 
-    // Function that is called before a player sends a chat message
-    void OnBeforeSendChatMessage(Player* player, uint32& /*type*/, uint32& /*lang*/, std::string& msg)
-    {
-        if (!sConfigMgr->GetOption<bool>("ModChatEnchanced.Enable", false))
+        // If the message has "@here", it's intended for all players in the same area as the Game Master.
+        if (msg.find("@here") != std::string::npos)
         {
-            return;
-        }
-
-        // Logic related to broadcasting messages and tagging other players in the chat
-
-        // Check if the player is a Game Master and if the message contains "@here" or "@everyone" tags.
-        if (player->IsGameMaster() && (msg.find("@here") != std::string::npos || msg.find("@everyone") != std::string::npos )) {
-            // Getting all active sessions.
-            SessionMap const& sessions = sWorld->GetAllSessions();
-            // Formatting the name of the game master in context.
-            std::string formatted_player_name = "[|Hplayer:" + player->GetName() + "|h" + player->GetName() + "|h]";
-
-            // If the message has "@here", it's intended for all players in the same area as the Game Master.
-            if ( msg.find("@here" ) != std::string::npos )
+            // Storing the area ID of the game master.
+            uint32 gmAreaId = player->GetAreaId();
+            // Iterate over all active game sessions to find players in the same area.
+            for (SessionMap::const_iterator i = sessions.begin(); i != sessions.end(); ++i)
             {
-                // Storing the area ID of the game master.
-                uint32 gmAreaId = player->GetAreaId();
-                // Iterate over all active game sessions to find players in the same area.
-                for (SessionMap::const_iterator i = sessions.begin(); i != sessions.end(); ++i)
+                Player* p = i->second->GetPlayer();
+
+                // For each player found in the same area,
+                if (p->GetAreaId() == gmAreaId)
                 {
-                    Player* p = i->second->GetPlayer();
-
-                    // For each player found in the same area,
-                    if ( p->GetAreaId() == gmAreaId )
-                    {
-                        // remove "@here", broadcast the message and play a sound.
-                        msg = std::regex_replace(msg, std::regex("@here"), ""); // remove "@here"
-                        ChatHandler(p->GetSession()).PSendSysMessage("%s : %s", formatted_player_name, msg.c_str());
-
-                        p->PlayDirectSound(3201);
-                    }
-                }
-            }
-
-            // Similarly, if the message contains "@everyone", it's intended for all players in the game.
-            if ( msg.find("@everyone") != std::string::npos )
-            {
-                // Iterate over all active game sessions
-                for (SessionMap::const_iterator i = sessions.begin(); i != sessions.end(); ++i)
-                {
-                    Player* p = i->second->GetPlayer();
-
-                    // For each player, remove "@everyone", broadcast the message and play a sound.
-                    msg = std::regex_replace(msg, std::regex("@everyone"), ""); // remove "@everyone"
+                    // remove "@here", broadcast the message and play a sound.
+                    msg = std::regex_replace(msg, std::regex("@here"), ""); // remove "@here"
                     ChatHandler(p->GetSession()).PSendSysMessage("%s : %s", formatted_player_name, msg.c_str());
 
-                    p->PlayDirectSound(3201);
+                    p->PlayDirectSound(SOUND_IG_BONUS_BAR_OPEN);
                 }
             }
         }
 
-        // Create an input stringstream from the message
-        std::istringstream iss(msg);
-
-        // Split the message into words and store them into a vector
-        std::vector<std::string> words((std::istream_iterator<std::string>(iss)), std::istream_iterator<std::string>());
-
-        // Iterate over every word in the message
-        for(const auto& word : words)
+        // Similarly, if the message contains "@everyone", it's intended for all players in the game.
+        if (msg.find("@everyone") != std::string::npos)
         {
-            // Check if the word is a user tag, which starts with '@'
-            if (word[0] == '@') {
-                // Extract the player's name from the tag (by removing '@') and format this name
-                std::string player_name = FormatPlayerName(word.substr(1));
-                // Look up the corresponding player
-                Player* foundPlayer = FindPlayerByName(player_name);
-
-                // Check if the player exists (is logged in)
-                if (foundPlayer)
-                {
-                    // If the player exists, replace the tag with a formatted version in the message
-                    std::string player_tag = "[|Hplayer:" + player_name + "|h" + player_name + "|h]";
-                    msg = std::regex_replace(msg, std::regex(word), player_tag);
-                }
-            }
-
-            // Check if the current word is an emoticon by performing a map lookup
-            auto search = ChatEmotes.find(word);
-            
-            // If it is an emoticon, replace the emoticon text with its image
-            if(search != ChatEmotes.end())
+            // Iterate over all active game sessions
+            for (SessionMap::const_iterator i = sessions.begin(); i != sessions.end(); ++i)
             {
-                std::string replaced = std::regex_replace(msg, std::regex(word), search->second);
-                msg = replaced;
+                Player* p = i->second->GetPlayer();
+
+                // For each player, remove "@everyone", broadcast the message and play a sound.
+                msg = std::regex_replace(msg, std::regex("@everyone"), ""); // remove "@everyone"
+                ChatHandler(p->GetSession()).PSendSysMessage("%s : %s", formatted_player_name, msg.c_str());
+
+                p->PlayDirectSound(SOUND_IG_BONUS_BAR_OPEN);
             }
         }
     }
-};
+
+    // Create an input stringstream from the message
+    std::istringstream iss(msg);
+
+    // Split the message into words and store them into a vector
+    std::vector<std::string> words((std::istream_iterator<std::string>(iss)), std::istream_iterator<std::string>());
+
+    // Iterate over every word in the message
+    for (const auto& word : words)
+    {
+        // Check if the word is a user tag, which starts with '@'
+        if (word[0] == '@') {
+            // Extract the player's name from the tag (by removing '@') and format this name
+            std::string player_name = FormatPlayerName(word.substr(1));
+            // Look up the corresponding player
+            Player* foundPlayer = FindPlayerByName(player_name);
+
+            // Check if the player exists (is logged in)
+            if (foundPlayer)
+            {
+                // If the player exists, replace the tag with a formatted version in the message
+                std::string player_tag = "[|Hplayer:" + player_name + "|h" + player_name + "|h]";
+                msg = std::regex_replace(msg, std::regex(word), player_tag);
+            }
+        }
+
+        // Check if the current word is an emoticon by performing a map lookup
+        auto search = ChatEmotes.find(word);
+
+        // If it is an emoticon, replace the emoticon text with its image
+        if (search != ChatEmotes.end())
+        {
+            std::string replaced = std::regex_replace(msg, std::regex(word), search->second);
+            msg = replaced;
+        }
+    }
+}
 
 void AddSC_Chat_Enhanced()
 {
