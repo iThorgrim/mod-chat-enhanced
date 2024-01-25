@@ -42,7 +42,7 @@ void Chat_Enhanced_World::OnBeforeConfigLoad(bool reload)
     }
     while (qResult->NextRow());
 
-    LOG_INFO("module", Acore::StringFormatFmt(">> Loaded {} emojis.", count));
+    LOG_INFO("module", Acore::StringFormatFmt(">> Loaded '{}' emojis.", count));
 }
 
 Player* Chat_Enhanced_Player::FindPlayerByName(const std::string& name)
