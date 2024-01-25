@@ -3,15 +3,28 @@
 
 #include "ScriptMgr.h"
 
+#include <map>
+
 enum Chat_Enhanced_Constants
 {
     SOUND_IG_BONUS_BAR_OPEN = 3201
 };
 
-class Chat_Enhanced : public PlayerScript
+std::map<std::string, std::string> ceEmojiMap;
+
+class Chat_Enhanced_World : public WorldScript
 {
 public:
-    Chat_Enhanced() : PlayerScript("Chat_Enhanced") { }
+    Chat_Enhanced_World() : WorldScript("Chat_Enhanced_World") { }
+
+public:
+    void OnBeforeConfigLoad(bool /*reload*/) override;
+};
+
+class Chat_Enhanced_Player : public PlayerScript
+{
+public:
+    Chat_Enhanced_Player() : PlayerScript("Chat_Enhanced_Player") { }
 
 public:
     // Function to find a player by their name
