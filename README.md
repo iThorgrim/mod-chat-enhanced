@@ -1,7 +1,5 @@
-# Documentation for the Chat_Enhanced Module
-
 ## Overview
-The Chat_Enhanced module is an addition to the game server that augments chat functionalities to make in-game interactions more immersive and engaging. It introduces the capability of using emoticons and tagging other players directly in the chat.
+The Chat Enhanced module is an addition to the game server that augments chat functionalities to make in-game interactions more immersive and engaging. It introduces the capability of using emoticons and tagging other players directly in the chat.
 
 ## Features
 
