@@ -34,5 +34,11 @@ Example:
 | - | - |
 | attack | Interface\CURSOR\Attack:14 |
 
-To understand how the resource paths work, you can [read this wiki](https://wowpedia.fandom.com/wiki/UI_escape_sequences) (scroll down to texture examples).
+### Resources
+- To understand how the resource paths work, you can [read this wiki](https://wowpedia.fandom.com/wiki/UI_escape_sequences) (scroll down to texture examples).
+
+- To extract the art from the game to view you can [read this wiki](https://wowpedia.fandom.com/wiki/Viewing_Blizzard%27s_interface_code).
+
+- To view the BLP files extracted you can use [BLPView](https://www.wowinterface.com/downloads/info16700-BLPView.html).
+
 
