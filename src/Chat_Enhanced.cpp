@@ -34,15 +34,15 @@ void Chat_Enhanced_World::OnBeforeConfigLoad(bool reload)
     {
         Field* fields = qResult->Fetch();
 
-        std::string emoji = Acore::StringFormatFmt(":{}:", fields[0].Get<std::string>());
-        std::string resource = Acore::StringFormatFmt("|T{}|t", fields[1].Get<std::string>());
+        std::string emoji = Acore::StringFormat(":{}:", fields[0].Get<std::string>());
+        std::string resource = Acore::StringFormat("|T{}|t", fields[1].Get<std::string>());
 
         ceEmojiMap.emplace(emoji, resource);
         count++;
     }
     while (qResult->NextRow());
 
-    LOG_INFO("module", Acore::StringFormatFmt(">> Loaded '{}' emojis.", count));
+    LOG_INFO("module", Acore::StringFormat(">> Loaded '{}' emojis.", count));
 }
 
 Player* Chat_Enhanced_Player::FindPlayerByName(const std::string& name)
